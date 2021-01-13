@@ -4,6 +4,13 @@ const fetch = require("node-fetch");
 const app = express();
 const proxyurl = "https://corsanimaco-dev.herokuapp.com/";
 const url = "https://www.kickstarter.com/projects/search.json?search=&term=games";
+let horas;
+if (process.argv[2]) {
+	horas = process.argv[2];
+}else{
+	horas = 10;
+}
+let numreq = 0;
 
 function guardarDatos(json){
 	fs.writeFile("db.json", JSON.stringify(json), function(err) {
@@ -11,7 +18,7 @@ function guardarDatos(json){
         console.log(err);
     }
 });
-	console.log('Projectos actualizados');
+	console.log('[DB] Datos actualizados, próxima actualización en '+horas+' horas');
 }
 
 function handleErrors(response) {
@@ -19,21 +26,27 @@ function handleErrors(response) {
     return response;
 }
 
-setInterval(function(){ 
-    fetch(proxyurl + url, {headers: {
+function getData() {
+	fetch(proxyurl + url, {headers: {
       'origin' : '*'
     }})
     .then(handleErrors)
     .then(response => response.text())
 	.then(contents => guardarDatos(JSON.parse(contents)))
     .catch(error => console.log(error) );
-}, 36000000);
+}
+getData();
+
+setInterval(function(){ 
+getData();
+}, (horas*60*60*1000));
 
 app.get('/projects', function(req, res) {
  res.send(JSON.parse(fs.readFileSync('db.json')));
- console.log('Peticion respondida');
+ console.log('[API] Peticion #'+numreq+' respondida :)');
+ numreq++;
 });
 
 app.listen(3000, () => {
- console.log("*Esperando peticiones*");
+ console.log('[API] Esperando peticiones...');
 });
