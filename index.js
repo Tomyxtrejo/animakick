@@ -9,7 +9,7 @@ let horas;
 if (process.argv[2]) {
 	horas = process.argv[2];
 }else{
-	horas = 10;
+	horas = 5;
 }
 let numreq = 0;
 
@@ -41,6 +41,12 @@ getData();
 setInterval(function(){ 
 getData();
 }, (horas*60*60*1000));
+
+app.use(function (req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    next();
+});
 
 app.get('/projects', function(req, res) {
  res.send(JSON.parse(fs.readFileSync(db)));
